@@ -722,13 +722,16 @@ export default defineOrgan({
         query: { type: 'string', description: '关键词，没有人物时用' },
         topic: { type: 'string', description: '主题，比如 住院 / 新版研究方向' },
         budget: { type: 'number', description: '返回字数上限，默认 900' },
+        topK: { type: 'number', description: '最多返回几条；记忆路由做回读校验时会传 5' },
         detail: { type: 'string', description: 'auto=按新旧自动决定详略（默认）  raw=一律给原话  gist=只给摘要' },
       },
       execute: (args) => {
         const input = args || {}
         const nowMs = Date.now()
         const events = read('events', {})
+        // 上限压在 3000：记忆路由的预算是 4000，超了它会重写压缩，把原话剪掉
         const budget = Number.isFinite(input.budget) ? Math.max(200, Math.min(3000, input.budget)) : 900
+        const topK = Number.isFinite(input.topK) ? Math.max(1, Math.min(50, input.topK)) : 0
 
         let picked = []
         let person = null
@@ -781,8 +784,10 @@ export default defineOrgan({
           const tail = others.length ? '（还有 ' + others.join('、') + '）' : ''
           const line = head + (ev.topic ? '｜' + ev.topic : '') + '：' + body + tail
           if (used + line.length > budget && lines.length > 0) break
+          if (topK && lines.length >= topK) break
           lines.push(line)
-          shown.push({ id: ev.id, text: line })
+          // 给路由的清单里放原话，不放展示稿：锚点回填和命中校验都是按文本比对的
+          shown.push({ id: ev.id, text: ev.claim })
           used += line.length
           recalled.push(ev.id)
         }
