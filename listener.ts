@@ -11,6 +11,7 @@ const SELF_ID = 'p_self'
 export default defineOrgan({
   manifest: {
     name: 'listener',
+    kind: 'memory',
     version: '1.0.0',
     capabilities: ['tools', 'prompt', 'timer', 'state:read', 'chem:write', 'fs:organ'],
   },
@@ -583,7 +584,22 @@ export default defineOrgan({
         const nowMs = Date.now()
         const parsed = input.at ? Date.parse(String(input.at)) : NaN
         const when = Number.isFinite(parsed) ? parsed : nowMs
-        const names = splitNames(input.persons)
+        // 没给名字就自己在话里找：被记忆路由调用时只会传 text，不会传 persons
+        let names = splitNames(input.persons)
+        if (!names.length) {
+          const pool = read('people', {})
+          const guessed = []
+          for (const pid of Object.keys(pool)) {
+            if (pid === SELF_ID) continue
+            const person = pool[pid]
+            const labels = [person.name].concat(person.aliases || [])
+            for (const label of labels) {
+              if (!label || label.length < 2) continue
+              if (text.indexOf(label) >= 0 && guessed.indexOf(person.name) < 0) guessed.push(person.name)
+            }
+          }
+          names = guessed
+        }
 
         const created = []
         const linked = []
@@ -742,6 +758,7 @@ export default defineOrgan({
 
         const people = read('people', {})
         const lines = []
+        const shown = []
         let used = 0
         const recalled = []
         for (const item of scored) {
@@ -765,6 +782,7 @@ export default defineOrgan({
           const line = head + (ev.topic ? '｜' + ev.topic : '') + '：' + body + tail
           if (used + line.length > budget && lines.length > 0) break
           lines.push(line)
+          shown.push({ id: ev.id, text: line })
           used += line.length
           recalled.push(ev.id)
         }
@@ -809,6 +827,8 @@ export default defineOrgan({
           header,
           text: lines.join('\n'),
           count: lines.length,
+          // 记忆路由要的就是这一段：total 决定"这次算命中几条"，shown 供它回读校验
+          structured: { total: scored.length, shown, attention: null },
         }
       },
     })
