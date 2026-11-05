@@ -105,7 +105,7 @@ export default defineOrgan({
       try {
         ctx.kv.set(key, value)
       } catch (error) {
-        ctx.log('写入失败 ' + key + '：' + error)
+        ctx.log('info', '写入失败 ' + key + '：' + error)
       }
     }
 
@@ -562,7 +562,7 @@ export default defineOrgan({
       try {
         ctx.registerTool(definition)
       } catch (error) {
-        ctx.log('工具 ' + definition.name + ' 注册失败：' + error)
+        ctx.log('info', '工具 ' + definition.name + ' 注册失败：' + error)
       }
     }
 
@@ -1503,14 +1503,14 @@ export default defineOrgan({
       ctx.onTick(6 * 3600 * 1000, () => {
         const stats = consolidate()
         if (stats.merged || stats.linked || stats.pruned) {
-          ctx.log('整理：合并 ' + stats.merged + '，连线 ' + stats.linked + '，清理悬空 ' + stats.pruned)
+          ctx.log('info', '整理：合并 ' + stats.merged + '，连线 ' + stats.linked + '，清理悬空 ' + stats.pruned)
         }
       })
     } catch (error) {
-      ctx.log('定时器注册失败：' + error)
+      ctx.log('info', '定时器注册失败：' + error)
     }
 
-    ctx.log('就绪：人物档案 + 总目录 + 权重衰减')
+    ctx.log('info', '就绪：人物档案 + 总目录 + 权重衰减')
   },
 })
 
