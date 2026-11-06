@@ -1,4 +1,4 @@
-# dsh-character-longmemory（倾听者）
+# dsh-character-long-memory（倾听者）
 
 一个以「人」为单位的长期记忆插件。给 AI 一个记事本，让它记住你说的那些人，以及他们在你生活里的位置。
 
