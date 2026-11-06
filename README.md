@@ -4,6 +4,26 @@
 
 不是给论文用的，是给每天真的在跟 AI 说话的人用的。
 
+> **前置条件**：必须装在 `digital-life-core` 里。它不是一个独立的 DSH 插件，离开那个宿主跑不起来。
+
+## 三十秒装好
+
+1. 找到器官目录：
+
+```
+<dsh-desktop>/harness/profiles/.generations/live/digital-life-core+<版本>/node_modules/digital-life-core/web-ui/organs/self-made/
+```
+
+2. 把 `listener.ts` 丢进去
+
+3. 重启 DSH
+
+日志里出现这一行，就是接上了：
+
+```
+[life-os] 记忆路由已接她的海马体：listener（想起→organ_listener_recall，记下→organ_listener_remember）
+```
+
 ---
 
 ## 它解决什么
