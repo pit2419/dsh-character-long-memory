@@ -361,6 +361,24 @@ manifest: { name: 'listener', kind: 'memory', ... }
 
 **它带的 `topK` 要照办。** 回读校验时它会带 `topK: 5` 来问，不理它就会白拉一大段。
 
+## patches/：给核心打运行时补丁
+
+`patches/dashboard-fix.ts` 不是记忆插件的一部分，是一个补丁器官。
+
+它处理 `digital_life_dashboard` 的报错：核心把它的 output schema 写死成 `additionalProperties: false`，但返回值里多带了 `restMode` 和 `naturalCap` 两个没声明的字段，校验器于是把整条结果拒掉，工具直接不可用。
+
+```
+Error: tool "digital_life_dashboard" returned invalid output:
+"value.restMode" is not a declared property (additionalProperties: false);
+"value.naturalCap" is not a declared property (additionalProperties: false)
+```
+
+**它修不了这个 bug，只能把报错换成一句人话。**
+
+原因：核心工具的 after 补丁挂在 `tools/post-execute`，那时校验已经做完了；而且那条链只允许替换 content 文本，不允许替换 value。只有器官工具才有 `execute` 外层可改。根因在 L0，器官层碰不到。
+
+用法跟 `listener.ts` 一样：丢进 `self-made/`，重启。零工具、零注入，留着不碍事。上游修好之后删掉即可。
+
 ## 出处
 
 为「AI 的长期记忆以人物为基本单元存放」这个想法做的实现。最初的设计只有三件事：人物档案、时间衰减、主动追问。后来补上了纠错、导出、情绪判断和遗忘权。
